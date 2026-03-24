@@ -166,10 +166,6 @@ const JobDetailsModal = ({
       setApplyOpen(false);
       setCoverLetter("");
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["my-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-applications-for-interview"] });
     },
     onError: (err: any) =>
       toast.error(err?.response?.data?.message || "Failed to apply"),
@@ -401,10 +397,6 @@ const JobCard = ({
       toast.success("Application submitted!");
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["my-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-applications-for-interview"] });
     },
     onError: (err: any) =>
       toast.error(err?.response?.data?.message || "Failed to apply"),
