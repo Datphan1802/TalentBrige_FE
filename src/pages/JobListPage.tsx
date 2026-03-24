@@ -6,6 +6,7 @@ import {
   JobPostResponse,
   PageResponse,
   ApplicationRequest,
+  ChatRoomResponse,
 } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -251,6 +253,7 @@ const JobDetailsModal = ({
   const [applyOpen, setApplyOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["job-details", jobId],
@@ -278,6 +281,23 @@ const JobDetailsModal = ({
     },
     onError: (err: any) =>
       toast.error(err?.response?.data?.message || "Failed to apply"),
+  });
+
+  const createChatRoomMutation = useMutation({
+    mutationFn: (targetUserId: number) =>
+      api
+        .post<ApiResponse<ChatRoomResponse>>(`/api/v1/chat/rooms/${targetUserId}`)
+        .then((r) => r.data.data),
+    onSuccess: (chatRoom) => {
+      toast.success("Opening chat...");
+      navigate(`/chat?roomId=${chatRoom.id}`);
+    },
+    onError: (err: any) => {
+      const errorMessage =
+        err?.response?.data?.message || err?.message || "Failed to create chat";
+      toast.error(errorMessage);
+      navigate("/chat");
+    },
   });
 
   return (
@@ -396,18 +416,32 @@ const JobDetailsModal = ({
                 <h3 className="text-sm font-semibold text-foreground">
                   About the Company
                 </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Navigate to employer profile
-                    window.location.href = `/employer/profile/${job.employerId}`;
-                  }}
-                  className="gap-1"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  View Profile
-                </Button>
+                <div className="flex items-center gap-2">
+                  {canApply && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => createChatRoomMutation.mutate(job.employerId)}
+                      disabled={createChatRoomMutation.isPending}
+                      className="gap-1"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {createChatRoomMutation.isPending ? "Opening..." : "Message Hirer"}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Navigate to employer profile
+                      window.location.href = `/employer/profile/${job.employerId}`;
+                    }}
+                    className="gap-1"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View Profile
+                  </Button>
+                </div>
               </div>
               <div className="bg-accent/30 rounded-lg p-4">
                 <div className="flex items-center gap-3">

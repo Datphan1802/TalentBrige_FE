@@ -165,20 +165,11 @@ const CandidateProfileView = ({ candidateId }: { candidateId: number }) => {
   const createChatRoomMutation = useMutation({
     mutationFn: (targetUserId: number) => {
       console.log("Creating chat room with candidate:", targetUserId);
-      // Try different endpoints and methods
-      return api.post<ApiResponse<ChatRoomResponse>>("/api/v1/chat/rooms", { targetUserId })
-        .then(r => {
+      return api
+        .post<ApiResponse<ChatRoomResponse>>(`/api/v1/chat/rooms/${targetUserId}`)
+        .then((r) => {
           console.log("Chat room created/retrieved:", r.data);
           return r.data.data;
-        })
-        .catch(err => {
-          console.error("POST /rooms failed, trying /chat endpoint...");
-          // Try different endpoint
-          return api.post<ApiResponse<ChatRoomResponse>>("/api/v1/chat", { targetUserId })
-            .then(r => {
-              console.log("Chat room created/retrieved with /chat:", r.data);
-              return r.data.data;
-            });
         });
     },
     onSuccess: (chatRoom) => {

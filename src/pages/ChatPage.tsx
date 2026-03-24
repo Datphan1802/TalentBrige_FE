@@ -3,7 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { ApiResponse, ChatRoomResponse, ChatMessageResponse, SendMessageRequest } from "@/lib/types";
+import {
+  ApiResponse,
+  ChatRoomResponse,
+  ChatMessageResponse,
+  SendMessageRequest,
+  ApplicationResponse,
+  JobPostResponse,
+} from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,12 +19,14 @@ import { cn } from "@/lib/utils";
 import { Send, MessageSquare, ArrowLeft, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const ChatPage = () => {
-  const { userId } = useAuth();
+  const { userId, role } = useAuth();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+  const [selectedChatName, setSelectedChatName] = useState<string>("");
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +60,52 @@ const ChatPage = () => {
     refetchInterval: 3000,
   });
 
+  // Candidate flow: show hirers from applications when no room exists yet
+  const { data: myApplicationsData } = useQuery({
+    queryKey: ["my-applications-for-chat"],
+    queryFn: () =>
+      api
+        .get<ApiResponse<ApplicationResponse[]>>("/api/v1/applications/my-applications")
+        .then((r) => r.data.data),
+    enabled: role === "CANDIDATE",
+  });
+
+  const { data: candidateChatTargetsData, isLoading: candidateChatTargetsLoading } = useQuery({
+    queryKey: [
+      "candidate-chat-targets",
+      myApplicationsData?.map((a) => a.jobPostId).join(",") || "",
+    ],
+    queryFn: async () => {
+      const applications = myApplicationsData ?? [];
+      const uniqueJobIds = Array.from(new Set(applications.map((a) => a.jobPostId)));
+      if (!uniqueJobIds.length) return [] as { employerId: number; companyName: string; jobTitle: string }[];
+
+      const jobs = await Promise.all(
+        uniqueJobIds.map((jobId) =>
+          api
+            .get<ApiResponse<JobPostResponse>>(`/api/v1/jobs/${jobId}`)
+            .then((r) => r.data.data)
+            .catch(() => null)
+        )
+      );
+
+      const dedup = new Map<number, { employerId: number; companyName: string; jobTitle: string }>();
+      jobs.forEach((job) => {
+        if (!job) return;
+        if (!dedup.has(job.employerId)) {
+          dedup.set(job.employerId, {
+            employerId: job.employerId,
+            companyName: job.companyName,
+            jobTitle: job.title,
+          });
+        }
+      });
+
+      return Array.from(dedup.values());
+    },
+    enabled: role === "CANDIDATE" && !!myApplicationsData,
+  });
+
   // Send message mutation
   const sendMutation = useMutation({
     mutationFn: (req: SendMessageRequest) => api.post<ApiResponse<ChatMessageResponse>>("/api/v1/chat/messages", req),
@@ -59,6 +114,26 @@ const ChatPage = () => {
       queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
       setMessage("");
       inputRef.current?.focus();
+    },
+  });
+
+  const createChatRoomMutation = useMutation({
+    mutationFn: (otherUserId: number) =>
+      api
+        .post<ApiResponse<ChatRoomResponse>>(`/api/v1/chat/rooms/${otherUserId}`)
+        .then((r) => r.data.data),
+    onSuccess: (chatRoom) => {
+      queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
+      setSelectedRoomId(chatRoom.id);
+      const otherName =
+        chatRoom.userOneId === userId ? chatRoom.userTwoUsername : chatRoom.userOneUsername;
+      setSelectedChatName(otherName || "Hirer");
+    },
+    onError: (error: unknown) => {
+      const responseError = error as { response?: { data?: { message?: string } } };
+      toast.error(
+        responseError?.response?.data?.message || "Không thể tạo cuộc trò chuyện"
+      );
     },
   });
 
@@ -119,15 +194,65 @@ const ChatPage = () => {
               ))}
             </div>
           ) : !roomsData?.length ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">
-              No conversations yet
-            </div>
+            role === "CANDIDATE" ? (
+              <div className="p-3 space-y-3">
+                <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Start a conversation with hirers
+                </p>
+                {candidateChatTargetsLoading ? (
+                  [1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-40" />
+                      </div>
+                    </div>
+                  ))
+                ) : candidateChatTargetsData?.length ? (
+                  candidateChatTargetsData.map((target) => (
+                    <button
+                      key={target.employerId}
+                      onClick={() => {
+                        setSelectedChatName(target.companyName);
+                        createChatRoomMutation.mutate(target.employerId);
+                      }}
+                      disabled={createChatRoomMutation.isPending}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left hover:bg-accent disabled:opacity-60"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {target.companyName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          {target.jobTitle}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-muted-foreground text-sm">
+                    Bạn chưa apply job nào để bắt đầu nhắn với hirer.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                No conversations yet
+              </div>
+            )
           ) : (
             <div className="p-2">
               {roomsData.map(room => (
                 <button
                   key={room.id}
-                  onClick={() => setSelectedRoomId(room.id)}
+                  onClick={() => {
+                    setSelectedRoomId(room.id);
+                    setSelectedChatName(getOtherUsername(room));
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left",
                     selectedRoomId === room.id
@@ -167,7 +292,7 @@ const ChatPage = () => {
           !selectedRoomId ? "hidden md:flex" : "flex"
         )}
       >
-        {selectedRoomId && selectedRoom ? (
+        {selectedRoomId ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b border-border flex items-center gap-3 bg-accent/30">
@@ -183,7 +308,7 @@ const ChatPage = () => {
                 <User className="w-4 h-4 text-primary" />
               </div>
               <span className="font-semibold text-foreground">
-                {getOtherUsername(selectedRoom)}
+                {selectedRoom ? getOtherUsername(selectedRoom) : selectedChatName || "Conversation"}
               </span>
             </div>
 
