@@ -79,10 +79,15 @@ const LoginPage = () => {
               <Button type="submit" className="w-full font-semibold shadow-soft" disabled={mutation.isPending}>
                 {mutation.isPending ? "Signing in..." : "Sign In"}
               </Button>
-              <p className="text-sm text-center text-muted-foreground">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-primary font-medium hover:underline">Create one</Link>
-              </p>
+              <div className="flex items-center justify-between text-sm">
+                <Link to="/forgot-password" className="text-primary font-medium hover:underline">
+                  Forgot password?
+                </Link>
+                <span className="text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Link to="/register" className="text-primary font-medium hover:underline">Create one</Link>
+                </span>
+              </div>
             </form>
           </CardContent>
         </Card>

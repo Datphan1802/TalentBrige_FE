@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import JobListPage from "./pages/JobListPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
 import CandidateProfilePage from "./pages/CandidateProfilePage";
@@ -38,6 +40,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
               <Route path="/jobs" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><JobListPage /></ProtectedRoute>} />
               <Route path="/my-applications" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><MyApplicationsPage /></ProtectedRoute>} />
               <Route path="/candidate/profile" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><CandidateProfilePage /></ProtectedRoute>} />
