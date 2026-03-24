@@ -172,11 +172,11 @@ export default function AiHistoryPage() {
               <p className="text-xs text-muted-foreground text-center py-4">No chat history</p>
             ) : (
               sessions.map((session) => (
-                <button
+                <div
                   key={session.id}
                   onClick={() => handleSelectSession(session)}
                   className={cn(
-                    "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 line-clamp-2 group flex items-center justify-between hover:pr-2",
+                    "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 line-clamp-2 group flex items-center justify-between hover:pr-2 cursor-pointer",
                     selectedSession?.id === session.id
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -192,7 +192,7 @@ export default function AiHistoryPage() {
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
-                </button>
+                </div>
               ))
             )}
           </div>
