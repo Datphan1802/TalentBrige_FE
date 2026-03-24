@@ -397,6 +397,9 @@ const JobCard = ({
       toast.success("Application submitted!");
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      // Invalidate application queries for both candidate and employer
+      queryClient.invalidateQueries({ queryKey: ["my-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-applications"] });
     },
     onError: (err: any) =>
       toast.error(err?.response?.data?.message || "Failed to apply"),
