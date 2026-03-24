@@ -64,13 +64,30 @@ const EmployerJobsPage = () => {
         .then((r) => r.data.data),
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () =>
-      api
-        .get<ApiResponse<CategoryResponse[]>>("/api/v1/categories")
-        .then((r) => r.data.data),
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["employer-categories"],
+    queryFn: async () => {
+      try {
+        // Try admin endpoint first since employer should have access
+        const adminResponse = await api.get<ApiResponse<CategoryResponse[]>>("/api/v1/admin/categories");
+        console.log("Admin Categories API Response:", adminResponse.data);
+        return adminResponse.data.data;
+      } catch (adminError) {
+        console.error("Failed to fetch admin categories, trying public endpoint:", adminError);
+        try {
+          // Fallback to public endpoint
+          const publicResponse = await api.get<ApiResponse<CategoryResponse[]>>("/api/v1/categories");
+          console.log("Public Categories API Response:", publicResponse.data);
+          return publicResponse.data.data;
+        } catch (publicError) {
+          console.error("Failed to fetch categories from both endpoints:", publicError);
+          return [];
+        }
+      }
+    },
   });
+
+  console.log("Categories data:", categories, "Loading:", categoriesLoading);
 
   const ymdRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -252,9 +269,10 @@ const EmployerJobsPage = () => {
                     onValueChange={(v) =>
                       setForm((f) => ({ ...f, categoryId: Number(v) }))
                     }
+                    disabled={categoriesLoading}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                     </SelectTrigger>
                     <SelectContent>
                       {categories?.map((c) => (
@@ -262,6 +280,11 @@ const EmployerJobsPage = () => {
                           {c.name}
                         </SelectItem>
                       ))}
+                      {!categoriesLoading && (!categories || categories.length === 0) && (
+                        <SelectItem value="" disabled>
+                          No categories available
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
