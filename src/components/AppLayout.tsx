@@ -1,16 +1,44 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { LogOut, Bell, Briefcase, User, Shield, FolderOpen, Users, Search, Menu, X, Home, CalendarIcon, MessageSquare, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "@/lib/api";
+import { ApiResponse, ChatRoomResponse, NotificationResponse } from "@/lib/types";
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, role, username, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["notifications-unread-badge"],
+    queryFn: () =>
+      api
+        .get<ApiResponse<NotificationResponse[]>>("/api/v1/notifications")
+        .then((r) => r.data.data),
+    enabled: isAuthenticated,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: chatRooms = [] } = useQuery({
+    queryKey: ["chatRooms-unread-badge"],
+    queryFn: () =>
+      api
+        .get<ApiResponse<ChatRoomResponse[]>>("/api/v1/chat/rooms")
+        .then((r) => r.data.data),
+    enabled: isAuthenticated && (role === "CANDIDATE" || role === "EMPLOYER"),
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+  });
+
+  const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
+  const unreadMessagesCount = chatRooms.filter((room) => (room.unreadCount || 0) > 0).length;
 
   const handleLogout = () => {
     logout();
@@ -24,20 +52,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
        ? [
            { to: "/jobs", icon: Search, label: "Browse Jobs" },
            { to: "/my-applications", icon: FolderOpen, label: "My Applications" },
-           { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/chat", icon: MessageSquare, label: "Messages", badgeCount: unreadMessagesCount },
            { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/candidate/profile", icon: User, label: "Profile" },
-           { to: "/notifications", icon: Bell, label: "Notifications" },
+           { to: "/notifications", icon: Bell, label: "Notifications", badgeCount: unreadNotificationsCount },
          ]
       : role === "EMPLOYER"
        ? [
            { to: "/employer/jobs", icon: Briefcase, label: "My Jobs" },
            { to: "/employer/applications", icon: FolderOpen, label: "Applications" },
            { to: "/employer/interviews", icon: CalendarIcon, label: "Interviews" },
-           { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/chat", icon: MessageSquare, label: "Messages", badgeCount: unreadMessagesCount },
            { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/employer/profile", icon: User, label: "Profile" },
-           { to: "/notifications", icon: Bell, label: "Notifications" },
+           { to: "/notifications", icon: Bell, label: "Notifications", badgeCount: unreadNotificationsCount },
          ]
       : role === "ADMIN"
       ? [
@@ -45,7 +73,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           { to: "/admin/categories", icon: FolderOpen, label: "Categories" },
           { to: "/admin/users", icon: Users, label: "Users" },
           { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
+          { to: "/notifications", icon: Bell, label: "Notifications", badgeCount: unreadNotificationsCount },
         ]
       : []
     : [];
@@ -128,7 +156,19 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                       )}
                     >
                       <item.icon className="w-4 h-4" />
-                      {item.label}
+                      <span>{item.label}</span>
+                      {!!item.badgeCount && item.badgeCount > 0 && (
+                        <span
+                          className={cn(
+                            "ml-auto min-w-5 h-5 px-1 rounded-full text-[11px] font-semibold flex items-center justify-center",
+                            isActive(item.to)
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-primary text-primary-foreground"
+                          )}
+                        >
+                          {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                        </span>
+                      )}
                     </button>
                   </Link>
                 ))}
@@ -169,7 +209,19 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                             )}
                           >
                             <item.icon className="w-4 h-4" />
-                            {item.label}
+                            <span>{item.label}</span>
+                            {!!item.badgeCount && item.badgeCount > 0 && (
+                              <span
+                                className={cn(
+                                  "ml-auto min-w-5 h-5 px-1 rounded-full text-[11px] font-semibold flex items-center justify-center",
+                                  isActive(item.to)
+                                    ? "bg-primary-foreground/20 text-primary-foreground"
+                                    : "bg-primary text-primary-foreground"
+                                )}
+                              >
+                                {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                              </span>
+                            )}
                           </button>
                         </Link>
                       ))}

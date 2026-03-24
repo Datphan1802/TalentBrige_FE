@@ -30,6 +30,8 @@ const NotificationsPage = () => {
           throw error;
         });
     },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const markAllRead = useMutation({
