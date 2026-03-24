@@ -72,10 +72,15 @@ export default function AiHistoryPage() {
     setLoading(true);
     try {
       const msgs = await aiGetSessionMessages(session.id);
-      const formattedMsgs: ChatMessage[] = (msgs || []).map((msg: any) => ({
-        role: msg.role || "user",
-        content: msg.content || "",
-      }));
+      console.log("Loaded messages from session:", msgs);
+      const formattedMsgs: ChatMessage[] = (msgs || []).map((msg: any) => {
+        const role = msg.role === "user" ? "user" : "assistant";
+        console.log("Message role mapping:", { original: msg.role, formatted: role, content: msg.content });
+        return {
+          role: role,
+          content: msg.content || "",
+        };
+      });
       setMessages(formattedMsgs);
     } catch (err) {
       console.error("Error loading messages:", err);
@@ -131,6 +136,7 @@ export default function AiHistoryPage() {
 
     try {
       const response = await aiSendSessionMessage(selectedSession.id, trimmed);
+      console.log("AI Response received:", response);
       const assistantContent = response.assistantMessage?.content || "No response";
 
       // Auto-rename session on first message
@@ -146,7 +152,9 @@ export default function AiHistoryPage() {
         setIsTitleUpdated(true);
       }
 
-      setMessages([...updatedMessages, { role: "assistant", content: assistantContent }]);
+      const assistantMsg: ChatMessage = { role: "assistant", content: assistantContent };
+      console.log("Adding assistant message:", assistantMsg);
+      setMessages([...updatedMessages, assistantMsg]);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to send message";
       toast.error(errorMsg);
