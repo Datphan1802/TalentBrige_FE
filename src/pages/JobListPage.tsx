@@ -161,10 +161,16 @@ const JobDetailsModal = ({
   const applyMutation = useMutation({
     mutationFn: (data: ApplicationRequest) =>
       api.post("/api/v1/applications", data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Application submitted!");
       setApplyOpen(false);
       setCoverLetter("");
+      
+      // Add small delay to ensure backend has processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refetch my-applications to show new application
+      await queryClient.refetchQueries({ queryKey: ["my-applications"] });
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
     },
     onError: (err: any) =>
@@ -393,9 +399,15 @@ const JobCard = ({
   const applyMutation = useMutation({
     mutationFn: (data: ApplicationRequest) =>
       api.post("/api/v1/applications", data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Application submitted!");
       setOpen(false);
+      
+      // Add small delay to ensure backend has processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refetch my-applications to show new application
+      await queryClient.refetchQueries({ queryKey: ["my-applications"] });
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
     },
     onError: (err: any) =>

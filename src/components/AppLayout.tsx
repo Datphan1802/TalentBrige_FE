@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Bell, Briefcase, User, Shield, FolderOpen, Users, Search, Menu, X, Home, CalendarIcon, MessageSquare } from "lucide-react";
+import { LogOut, Bell, Briefcase, User, Shield, FolderOpen, Users, Search, Menu, X, Home, CalendarIcon, MessageSquare, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
            { to: "/jobs", icon: Search, label: "Browse Jobs" },
            { to: "/my-applications", icon: FolderOpen, label: "My Applications" },
            { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/candidate/profile", icon: User, label: "Profile" },
            { to: "/notifications", icon: Bell, label: "Notifications" },
          ]
@@ -34,6 +35,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
            { to: "/employer/applications", icon: FolderOpen, label: "Applications" },
            { to: "/employer/interviews", icon: CalendarIcon, label: "Interviews" },
            { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/employer/profile", icon: User, label: "Profile" },
            { to: "/notifications", icon: Bell, label: "Notifications" },
          ]
@@ -42,6 +44,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           { to: "/admin/jobs", icon: Shield, label: "Pending Jobs" },
           { to: "/admin/categories", icon: FolderOpen, label: "Categories" },
           { to: "/admin/users", icon: Users, label: "Users" },
+          { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
           { to: "/notifications", icon: Bell, label: "Notifications" },
         ]
       : []

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import api from "@/lib/api";
+import { aiCreateSession, aiSendSessionMessage } from "@/lib/ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -51,8 +52,23 @@ const AiAssistantPage = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Create session on mount
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        const session = await aiCreateSession("New Chat");
+        setSessionId(session.id);
+      } catch (err) {
+        console.error("Failed to create session:", err);
+        toast.error("Failed to create chat session");
+      }
+    };
+    initSession();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,7 +76,7 @@ const AiAssistantPage = () => {
 
   const handleSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || isLoading || !sessionId) return;
     if (trimmed.length > 4000) {
       toast.error("Message must be under 4000 characters");
       return;
@@ -73,27 +89,9 @@ const AiAssistantPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await api.post("/api/v1/ai/chat", {
-        message: trimmed,
-        history: messages.map(m => ({ role: m.role, content: m.content })),
-      });
-      const raw = res.data?.data || res.data?.message || res.data;
-      let content: string;
-      if (typeof raw === "string") {
-        try {
-          const parsed = JSON.parse(raw);
-          content = parsed?.answer || raw;
-        } catch {
-          content = raw;
-        }
-      } else if (typeof raw === "object" && raw !== null) {
-        content = raw.answer || raw.content || raw.reply || JSON.stringify(raw);
-      } else {
-        content = String(raw);
-      }
-      // Normalize escaped newlines into real line breaks
-      content = content.replace(/\\n/g, "\n");
-      setMessages([...updatedMessages, { role: "assistant", content }]);
+      const response = await aiSendSessionMessage(sessionId, trimmed);
+      const assistantContent = response.assistantMessage?.content || "No response";
+      setMessages([...updatedMessages, { role: "assistant", content: assistantContent }]);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to get AI response. Please try again.";
       toast.error(errorMsg);

@@ -20,9 +20,10 @@ import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ChatPage from "./pages/ChatPage";
-import AiAssistantPage from "./pages/AiAssistantPage";
 import FloatingAiButton from "./components/FloatingAiButton";
 import NotFound from "./pages/NotFound";
+import AiHistoryPage from "./pages/AiHistoryPage";
+import AiTestPage from "./pages/AiTestPage";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +50,9 @@ const App = () => (
               <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><ChatPage /></ProtectedRoute>} />
-              <Route path="/ai-assistant" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><AiAssistantPage /></ProtectedRoute>} />
+              <Route path="/ai-assistant" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><AiHistoryPage /></ProtectedRoute>} />
+              <Route path="/ai-history" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><AiHistoryPage /></ProtectedRoute>} />
+              <Route path="/ai-test" element={<AiTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <FloatingAiButton />
