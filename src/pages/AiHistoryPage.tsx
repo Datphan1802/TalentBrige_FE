@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { aiGetSessions, aiGetSessionMessages, aiSendSessionMessage, aiCreateSession, aiUpdateSessionTitle } from "@/lib/ai";
+import { aiGetSessions, aiGetSessionMessages, aiSendSessionMessage, aiCreateSession, aiUpdateSessionTitle, aiDeleteSession } from "@/lib/ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Plus, Send, Sparkles, Copy, Check, Bot, User } from "lucide-react";
+import { Plus, Send, Sparkles, Copy, Check, Bot, User, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -100,6 +100,25 @@ export default function AiHistoryPage() {
     }
   };
 
+  const handleDeleteSession = async (sessionId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this chat?")) return;
+
+    try {
+      await aiDeleteSession(sessionId);
+      setSessions(sessions.filter(s => s.id !== sessionId));
+      if (selectedSession?.id === sessionId) {
+        setSelectedSession(null);
+        setMessages([]);
+        setInput("");
+      }
+      toast.success("Chat deleted successfully");
+    } catch (err) {
+      console.error("Error deleting session:", err);
+      toast.error("Failed to delete chat");
+    }
+  };
+
   const handleSendMessage = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading || !selectedSession) return;
@@ -157,16 +176,22 @@ export default function AiHistoryPage() {
                   key={session.id}
                   onClick={() => handleSelectSession(session)}
                   className={cn(
-                    "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 line-clamp-2 group",
+                    "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 line-clamp-2 group flex items-center justify-between hover:pr-2",
                     selectedSession?.id === session.id
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                   title={session.title}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="truncate flex-1">{session.title}</span>
-                  </div>
+                  <span className="truncate flex-1">{session.title}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2"
+                    onClick={(e) => handleDeleteSession(session.id, e)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </button>
               ))
             )}
@@ -216,7 +241,7 @@ export default function AiHistoryPage() {
                           className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}
                         >
                           {!isUser && (
-                            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0 mt-1">
+                            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-1">
                               <Sparkles className="w-4 h-4 text-primary" />
                             </div>
                           )}
@@ -224,8 +249,8 @@ export default function AiHistoryPage() {
                             className={cn(
                               "group relative max-w-[70%] px-4 py-3 rounded-2xl text-sm",
                               isUser
-                                ? "bg-primary text-primary-foreground rounded-br-md"
-                                : "bg-muted text-foreground rounded-bl-md"
+                                ? "bg-blue-600 text-white rounded-br-md shadow-md"
+                                : "bg-gray-100 text-gray-950 rounded-bl-md shadow-sm dark:bg-gray-800 dark:text-gray-50"
                             )}
                           >
                             {isUser ? (
@@ -242,8 +267,8 @@ export default function AiHistoryPage() {
                             )}
                           </div>
                           {isUser && (
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                              <User className="w-4 h-4 text-primary" />
+                            <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0 mt-1">
+                              <User className="w-4 h-4 text-blue-600" />
                             </div>
                           )}
                         </motion.div>

@@ -3,7 +3,7 @@ import { aiCreateSession, aiSendSessionMessage } from "@/lib/ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send, Sparkles, User } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -124,13 +124,18 @@ export default function AiChatModal({ isOpen, onClose }: AiChatModalProps) {
                     key={i}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                    className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}
                   >
+                    {!isUser && (
+                      <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles className="w-3 h-3 text-primary" />
+                      </div>
+                    )}
                     <div
                       className={`max-w-[70%] px-3 py-2 rounded-lg text-xs ${
                         isUser
-                          ? "bg-primary text-primary-foreground rounded-br-none"
-                          : "bg-muted text-foreground rounded-bl-none"
+                          ? "bg-blue-600 text-white rounded-br-none shadow-md"
+                          : "bg-gray-100 text-gray-950 rounded-bl-none dark:bg-gray-800 dark:text-gray-50 shadow-sm"
                       }`}
                     >
                       {isUser ? (
@@ -141,6 +146,11 @@ export default function AiChatModal({ isOpen, onClose }: AiChatModalProps) {
                         </div>
                       )}
                     </div>
+                    {isUser && (
+                      <div className="w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <User className="w-3 h-3 text-blue-600" />
+                      </div>
+                    )}
                   </motion.div>
                 );
               })

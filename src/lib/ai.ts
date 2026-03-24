@@ -64,7 +64,13 @@ export async function aiSendSessionMessage(sessionId: number, content: string) {
   }
 }
 
-// 6. Forgot password (send email)
+// 6. Delete AI session
+export async function aiDeleteSession(sessionId: number) {
+  const res = await api.delete(`/api/v1/ai/sessions/${sessionId}`);
+  return res.data.data;
+}
+
+// 7. Forgot password (send email)
 export async function forgotPassword(email: string) {
   const res = await api.post("/api/v1/auth/forgot-password", { email });
   return res.data;
