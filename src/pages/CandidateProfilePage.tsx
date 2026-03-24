@@ -105,7 +105,17 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filteredSkills = SKILL_NAMES.filter(
-    s => s.includes(skillSearch.toUpperCase().replace(/ /g, "_")) && !skills?.some(existing => existing.skillName === s)
+    s => {
+      if (!skillSearch) return false;
+      
+      // Normalize search term - remove special chars and spaces, convert to uppercase
+      const normalizedSearch = skillSearch.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+      const normalizedSkill = s.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+      
+      // Check if normalized skill contains normalized search
+      return normalizedSkill.includes(normalizedSearch) && 
+             !skills?.some(existing => existing.skillName === s);
+    }
   ).slice(0, 20);
 
   const addSkill = useMutation({
@@ -134,7 +144,7 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
         <div className="flex flex-wrap gap-2">
           {skills?.map(s => (
             <Badge key={s.skillName} variant="secondary" className="gap-1.5 py-1.5 px-3">
-              {s.displayName || enumToDisplay(s.skillName)}
+              {s.skillName}
               <span className="text-xs text-muted-foreground">· {enumToDisplay(s.level)}</span>
               <button onClick={() => deleteSkill.mutate(s.skillName)} className="ml-1 hover:text-destructive transition-colors">
                 <Trash2 className="w-3 h-3" />
@@ -147,7 +157,7 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
           <div className="flex-1 space-y-2 relative">
             <Label>Skill Name</Label>
             <Input
-              value={skillName ? enumToDisplay(skillName) : skillSearch}
+              value={skillName || skillSearch}
               onChange={e => { setSkillSearch(e.target.value); setSkillName(""); setShowDropdown(true); }}
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -159,11 +169,11 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
                   <button
                     key={s}
                     type="button"
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors font-mono"
                     onMouseDown={e => e.preventDefault()}
                     onClick={() => { setSkillName(s); setSkillSearch(""); setShowDropdown(false); }}
                   >
-                    {enumToDisplay(s)}
+                    {s}
                   </button>
                 ))}
               </div>

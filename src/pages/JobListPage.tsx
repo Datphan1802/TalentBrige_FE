@@ -40,6 +40,109 @@ import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 
+// Format skill name to handle spaces and special characters
+const formatSkillName = (skillName: string): string => {
+  if (!skillName) return "";
+
+  // Convert common skill name formats to readable format
+  const skillMap: Record<string, string> = {
+    REACT: "React",
+    ANGULAR: "Angular",
+    VUE: "Vue.js",
+    NEXTJS: "Next.js",
+    NUXTJS: "Nuxt.js",
+    SVELTE: "Svelte",
+    JQUERY: "jQuery",
+    BOOTSTRAP: "Bootstrap",
+    TAILWIND_CSS: "Tailwind CSS",
+    SASS: "Sass/SCSS",
+    SPRING_BOOT: "Spring Boot",
+    SPRING_FRAMEWORK: "Spring",
+    NODEJS: "Node.js",
+    EXPRESS: "Express.js",
+    DJANGO: "Django",
+    FLASK: "Flask",
+    FASTAPI: "FastAPI",
+    LARAVEL: "Laravel",
+    RAILS: "Ruby on Rails",
+    ASP_NET: "ASP.NET",
+    NESTJS: "NestJS",
+    ANDROID: "Android",
+    IOS: "iOS",
+    REACT_NATIVE: "React Native",
+    FLUTTER: "Flutter",
+    XAMARIN: "Xamarin",
+    MYSQL: "MySQL",
+    POSTGRESQL: "PostgreSQL",
+    MONGODB: "MongoDB",
+    REDIS: "Redis",
+    ELASTICSEARCH: "Elasticsearch",
+    ORACLE: "Oracle",
+    MSSQL: "MS SQL Server",
+    SQLITE: "SQLite",
+    CASSANDRA: "Cassandra",
+    DYNAMODB: "DynamoDB",
+    FIREBASE: "Firebase",
+    AWS: "AWS",
+    AZURE: "Azure",
+    GCP: "Google Cloud",
+    DOCKER: "Docker",
+    KUBERNETES: "Kubernetes",
+    TERRAFORM: "Terraform",
+    ANSIBLE: "Ansible",
+    JENKINS: "Jenkins",
+    GITHUB_ACTIONS: "GitHub Actions",
+    GITLAB_CI: "GitLab CI",
+    LINUX: "Linux",
+    NGINX: "Nginx",
+    APACHE: "Apache",
+    MACHINE_LEARNING: "Machine Learning",
+    DEEP_LEARNING: "Deep Learning",
+    DATA_SCIENCE: "Data Science",
+    DATA_ANALYSIS: "Data Analysis",
+    TENSORFLOW: "TensorFlow",
+    PYTORCH: "PyTorch",
+    PANDAS: "Pandas",
+    NUMPY: "NumPy",
+    SPARK: "Apache Spark",
+    HADOOP: "Hadoop",
+    TABLEAU: "Tableau",
+    POWER_BI: "Power BI",
+    SQL: "SQL",
+    JUNIT: "JUnit",
+    SELENIUM: "Selenium",
+    CYPRESS: "Cypress",
+    JEST: "Jest",
+    POSTMAN: "Postman",
+    JMeter: "JMeter",
+    GIT: "Git",
+    AGILE: "Agile",
+    SCRUM: "Scrum",
+    JIRA: "Jira",
+    FIGMA: "Figma",
+    PHOTOSHOP: "Photoshop",
+    ILLUSTRATOR: "Illustrator",
+    COMMUNICATION: "Communication",
+    LEADERSHIP: "Leadership",
+    PROBLEM_SOLVING: "Problem Solving",
+    TEAMWORK: "Teamwork",
+    PROJECT_MANAGEMENT: "Project Management",
+    BUSINESS_ANALYSIS: "Business Analysis",
+    UI_UX_DESIGN: "UI/UX Design",
+    DEVOPS: "DevOps",
+    MICROSERVICES: "Microservices",
+    REST_API: "REST API",
+    GRAPHQL: "GraphQL",
+    GRPC: "gRPC",
+    KAFKA: "Apache Kafka",
+    RABBITMQ: "RabbitMQ",
+    WEBSOCKET: "WebSocket",
+  };
+
+  // Return mapped name or format the original
+  return skillMap[skillName] || skillName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
 const JobListPage = () => {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -273,7 +376,7 @@ const JobDetailsModal = ({
                       variant="secondary"
                       className="text-xs font-medium"
                     >
-                      {s.displayName || s.skillName}
+                      {formatSkillName(s.skillName)}
                       {s.level && (
                         <span className="ml-1 text-muted-foreground">
                           · {s.level}
@@ -458,7 +561,7 @@ const JobCard = ({
                 variant="outline"
                 className="text-xs font-normal bg-accent/50"
               >
-                {s.displayName || s.skillName}
+                {formatSkillName(s.skillName)}
               </Badge>
             ))}
             {job.skills.length > 4 && (
