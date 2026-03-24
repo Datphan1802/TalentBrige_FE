@@ -73,14 +73,34 @@ export default function AiHistoryPage() {
     try {
       const msgs = await aiGetSessionMessages(session.id);
       console.log("Loaded messages from session:", msgs);
-      const formattedMsgs: ChatMessage[] = (msgs || []).map((msg: any) => {
-        const role = msg.role === "user" ? "user" : "assistant";
-        console.log("Message role mapping:", { original: msg.role, formatted: role, content: msg.content });
+      console.log("First message structure:", JSON.stringify(msgs?.[0], null, 2));
+      console.log("All first message fields:", Object.keys(msgs?.[0] || {}));
+
+      const formattedMsgs: ChatMessage[] = (msgs || []).map((msg: any, index: number) => {
+        // If role exists, use it. Otherwise, use alternating pattern (even = user, odd = assistant)
+        let role: "user" | "assistant";
+        if (msg.role === "user") {
+          role = "user";
+        } else if (msg.role === "assistant") {
+          role = "assistant";
+        } else {
+          // Fallback: alternating pattern - even index = user, odd index = assistant
+          role = index % 2 === 0 ? "user" : "assistant";
+        }
+
+        console.log(`Message ${index}:`, {
+          allFields: Object.keys(msg),
+          original_role: msg.role,
+          detected_role: role,
+          content_preview: msg.content?.substring(0, 50)
+        });
+
         return {
           role: role,
           content: msg.content || "",
         };
       });
+
       setMessages(formattedMsgs);
     } catch (err) {
       console.error("Error loading messages:", err);
