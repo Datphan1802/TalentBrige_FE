@@ -303,3 +303,39 @@ export interface UserProfileResponse {
   followersCount: number;
   followingCount: number;
 }
+
+export interface UserSearchResponse {
+  id: number;
+  employerId: number | null;
+  candidateId: number | null;
+  username: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: Role;
+  companyName: string | null;
+  subtitle: string | null;
+  isFollowing: boolean;
+  followsYou: boolean;
+  isMutualFollow: boolean;
+  canMessage: boolean;
+  isMe: boolean;
+}
+
+export interface DirectoryProfileResponse {
+  id: number;
+  employerId: number | null;
+  candidateId: number | null;
+  username: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: Role;
+  companyName: string | null;
+  subtitle: string | null;
+  followerCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+  followsYou: boolean;
+  isMutualFollow: boolean;
+  isMe: boolean;
+  canMessage: boolean;
+}

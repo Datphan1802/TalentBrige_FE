@@ -52,6 +52,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
        ? [
            { to: "/jobs", icon: Search, label: "Browse Jobs" },
            { to: "/my-applications", icon: FolderOpen, label: "My Applications" },
+           { to: "/directory", icon: Users, label: "People" },
            { to: "/chat", icon: MessageSquare, label: "Messages", badgeCount: unreadMessagesCount },
            { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/candidate/profile", icon: User, label: "Profile" },
@@ -62,6 +63,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
            { to: "/employer/jobs", icon: Briefcase, label: "My Jobs" },
            { to: "/employer/applications", icon: FolderOpen, label: "Applications" },
            { to: "/employer/interviews", icon: CalendarIcon, label: "Interviews" },
+           { to: "/directory", icon: Users, label: "People" },
            { to: "/chat", icon: MessageSquare, label: "Messages", badgeCount: unreadMessagesCount },
            { to: "/ai-history", icon: Sparkles, label: "AI Chat" },
            { to: "/employer/profile", icon: User, label: "Profile" },

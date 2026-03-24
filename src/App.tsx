@@ -28,6 +28,8 @@ import FloatingAiButton from "./components/FloatingAiButton";
 import NotFound from "./pages/NotFound";
 import AiHistoryPage from "./pages/AiHistoryPage";
 import AiTestPage from "./pages/AiTestPage";
+import DirectorySearchPage from "./pages/DirectorySearchPage";
+import PublicProfilePage from "./pages/PublicProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,8 @@ const App = () => (
               <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
               <Route path="/jobs" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><JobListPage /></ProtectedRoute>} />
               <Route path="/my-applications" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><MyApplicationsPage /></ProtectedRoute>} />
+              <Route path="/directory" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><DirectorySearchPage /></ProtectedRoute>} />
+              <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
               <Route path="/candidate/profile" element={<ProtectedRoute allowedRoles={["CANDIDATE"]}><CandidateProfilePage /></ProtectedRoute>} />
               <Route path="/employer/jobs" element={<ProtectedRoute allowedRoles={["EMPLOYER"]}><EmployerJobsPage /></ProtectedRoute>} />
               <Route path="/employer/applications" element={<ProtectedRoute allowedRoles={["EMPLOYER"]}><EmployerApplicationsPage /></ProtectedRoute>} />

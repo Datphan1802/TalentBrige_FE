@@ -21,6 +21,90 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+const MOCK_ROOMS: ChatRoomResponse[] = [
+  {
+    id: 9001,
+    userOneId: 1,
+    userOneUsername: "john",
+    userTwoId: 2,
+    userTwoUsername: "FPT Recruiter",
+    lastMessage: "Can you join interview this Friday?",
+    unreadCount: 1,
+  },
+  {
+    id: 9002,
+    userOneId: 1,
+    userOneUsername: "john",
+    userTwoId: 3,
+    userTwoUsername: "VNG HR Team",
+    lastMessage: "Your CV looks good. Let's discuss.",
+    unreadCount: 0,
+  },
+  {
+    id: 9003,
+    userOneId: 1,
+    userOneUsername: "john",
+    userTwoId: 4,
+    userTwoUsername: "Shopee Talent",
+    lastMessage: "Please share your expected salary.",
+    unreadCount: 2,
+  },
+];
+
+const MOCK_MESSAGES: Record<number, ChatMessageResponse[]> = {
+  9001: [
+    {
+      id: 1,
+      roomId: 9001,
+      senderId: 2,
+      senderUsername: "FPT Recruiter",
+      content: "Hi John, thanks for applying to our role.",
+      isRead: true,
+      sentAt: "2026-03-24T09:10:00.000Z",
+    },
+    {
+      id: 2,
+      roomId: 9001,
+      senderId: 1,
+      senderUsername: "john",
+      content: "Thanks! I'm happy to connect.",
+      isRead: true,
+      sentAt: "2026-03-24T09:12:00.000Z",
+    },
+    {
+      id: 3,
+      roomId: 9001,
+      senderId: 2,
+      senderUsername: "FPT Recruiter",
+      content: "Can you join interview this Friday?",
+      isRead: false,
+      sentAt: "2026-03-24T09:15:00.000Z",
+    },
+  ],
+  9002: [
+    {
+      id: 4,
+      roomId: 9002,
+      senderId: 3,
+      senderUsername: "VNG HR Team",
+      content: "Your CV looks good. Let's discuss.",
+      isRead: true,
+      sentAt: "2026-03-24T08:00:00.000Z",
+    },
+  ],
+  9003: [
+    {
+      id: 5,
+      roomId: 9003,
+      senderId: 4,
+      senderUsername: "Shopee Talent",
+      content: "Please share your expected salary.",
+      isRead: false,
+      sentAt: "2026-03-24T07:45:00.000Z",
+    },
+  ],
+};
+
 const ChatPage = () => {
   const { userId, role } = useAuth();
   const [searchParams] = useSearchParams();
@@ -30,9 +114,12 @@ const ChatPage = () => {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasTriggeredOtherUserRef = useRef(false);
 
   // Get roomId from URL params
   const roomIdFromUrl = searchParams.get('roomId');
+  const otherUserIdFromUrl = searchParams.get("otherUserId");
+  const forceMockChat = searchParams.get("mockChat") === "1";
 
   // Auto-select room if roomId is in URL
   useEffect(() => {
@@ -137,6 +224,15 @@ const ChatPage = () => {
     },
   });
 
+  useEffect(() => {
+    if (hasTriggeredOtherUserRef.current) return;
+    if (!otherUserIdFromUrl) return;
+    const parsed = Number(otherUserIdFromUrl);
+    if (Number.isNaN(parsed)) return;
+    hasTriggeredOtherUserRef.current = true;
+    createChatRoomMutation.mutate(parsed);
+  }, [otherUserIdFromUrl, createChatRoomMutation]);
+
   // Mark as read mutation
   const markReadMutation = useMutation({
     mutationFn: (roomId: number) => api.put(`/api/v1/chat/rooms/${roomId}/read`),
@@ -161,6 +257,41 @@ const ChatPage = () => {
   };
 
   const selectedRoom = roomsData?.find(r => r.id === selectedRoomId);
+  const shouldUseMockData =
+    forceMockChat || (import.meta.env.DEV && !roomsLoading && !roomsData?.length);
+  const displayRooms = shouldUseMockData ? MOCK_ROOMS : (roomsData ?? []);
+  const selectedDisplayRoom = displayRooms.find((r) => r.id === selectedRoomId) || null;
+  const fallbackMessagesForSelectedRoom: ChatMessageResponse[] =
+    !shouldUseMockData &&
+    import.meta.env.DEV &&
+    !!selectedRoomId &&
+    !messagesLoading &&
+    (!messagesData || messagesData.length === 0) &&
+    !!selectedDisplayRoom
+      ? [
+          {
+            id: -1,
+            roomId: selectedRoomId,
+            senderId: selectedDisplayRoom.userOneId === userId ? selectedDisplayRoom.userTwoId : selectedDisplayRoom.userOneId,
+            senderUsername: getOtherUsername(selectedDisplayRoom),
+            content: "Xin chao! Day la tin nhan mau de demo giao dien chat.",
+            isRead: true,
+            sentAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          },
+          {
+            id: -2,
+            roomId: selectedRoomId,
+            senderId: userId || 0,
+            senderUsername: "You",
+            content: "Cam on, toi da nhan duoc tin nhan.",
+            isRead: true,
+            sentAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+          },
+        ]
+      : [];
+  const displayMessages = shouldUseMockData
+    ? (selectedRoomId ? MOCK_MESSAGES[selectedRoomId] ?? [] : [])
+    : ((messagesData && messagesData.length > 0) ? messagesData : fallbackMessagesForSelectedRoom);
 
   const getOtherUsername = (room: ChatRoomResponse) =>
     room.userOneId === userId ? room.userTwoUsername : room.userOneUsername;
@@ -193,7 +324,7 @@ const ChatPage = () => {
                 </div>
               ))}
             </div>
-          ) : !roomsData?.length ? (
+          ) : !displayRooms.length ? (
             role === "CANDIDATE" ? (
               <div className="p-3 space-y-3">
                 <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -246,7 +377,7 @@ const ChatPage = () => {
             )
           ) : (
             <div className="p-2">
-              {roomsData.map(room => (
+              {displayRooms.map(room => (
                 <button
                   key={room.id}
                   onClick={() => {
@@ -308,13 +439,15 @@ const ChatPage = () => {
                 <User className="w-4 h-4 text-primary" />
               </div>
               <span className="font-semibold text-foreground">
-                {selectedRoom ? getOtherUsername(selectedRoom) : selectedChatName || "Conversation"}
+                {selectedDisplayRoom
+                  ? getOtherUsername(selectedDisplayRoom)
+                  : selectedChatName || "Conversation"}
               </span>
             </div>
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
-              {messagesLoading ? (
+              {!shouldUseMockData && messagesLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map(i => (
                     <div key={i} className={cn("flex", i % 2 === 0 ? "justify-end" : "justify-start")}>
@@ -325,7 +458,7 @@ const ChatPage = () => {
               ) : (
                 <div className="space-y-3">
                   <AnimatePresence initial={false}>
-                    {messagesData?.map(msg => {
+                    {displayMessages.map(msg => {
                       const isMine = msg.senderId === userId;
                       return (
                         <motion.div
