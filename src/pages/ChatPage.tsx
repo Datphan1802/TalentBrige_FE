@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiResponse, ChatRoomResponse, ChatMessageResponse, SendMessageRequest } from "@/lib/types";
@@ -14,11 +15,25 @@ import { format } from "date-fns";
 
 const ChatPage = () => {
   const { userId } = useAuth();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Get roomId from URL params
+  const roomIdFromUrl = searchParams.get('roomId');
+
+  // Auto-select room if roomId is in URL
+  useEffect(() => {
+    if (roomIdFromUrl && !selectedRoomId) {
+      const roomId = parseInt(roomIdFromUrl);
+      if (!isNaN(roomId)) {
+        setSelectedRoomId(roomId);
+      }
+    }
+  }, [roomIdFromUrl, selectedRoomId]);
 
   // Fetch chat rooms (inbox)
   const { data: roomsData, isLoading: roomsLoading } = useQuery({

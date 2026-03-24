@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { ApiResponse, ApplicationResponse } from "@/lib/types";
+import { ApiResponse, ApplicationResponse, ChatRoomResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { CandidateProfileResponse } from "@/lib/types";
 import { toast } from "sonner";
-import { FileText, ExternalLink, Eye, User, Sparkles, Briefcase, GraduationCap } from "lucide-react";
+import { FileText, ExternalLink, Eye, User, Sparkles, Briefcase, GraduationCap, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
@@ -157,6 +158,46 @@ const CandidateProfileView = ({ candidateId }: { candidateId: number }) => {
     },
     enabled: !!candidateId,
   });
+
+  const navigate = useNavigate();
+
+  // Create or get chat room mutation
+  const createChatRoomMutation = useMutation({
+    mutationFn: (targetUserId: number) => {
+      console.log("Creating chat room with candidate:", targetUserId);
+      // Try different endpoints and methods
+      return api.post<ApiResponse<ChatRoomResponse>>("/api/v1/chat/rooms", { targetUserId })
+        .then(r => {
+          console.log("Chat room created/retrieved:", r.data);
+          return r.data.data;
+        })
+        .catch(err => {
+          console.error("POST /rooms failed, trying /chat endpoint...");
+          // Try different endpoint
+          return api.post<ApiResponse<ChatRoomResponse>>("/api/v1/chat", { targetUserId })
+            .then(r => {
+              console.log("Chat room created/retrieved with /chat:", r.data);
+              return r.data.data;
+            });
+        });
+    },
+    onSuccess: (chatRoom) => {
+      console.log("Chat room ready:", chatRoom);
+      toast.success("Opening chat...");
+      navigate(`/chat?roomId=${chatRoom.id}`);
+    },
+    onError: (err: any) => {
+      console.error("Create chat room error:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to create chat";
+      toast.error(errorMessage);
+      navigate("/chat");
+    },
+  });
+
+  const handleMessageCandidate = () => {
+    if (!profile) return;
+    createChatRoomMutation.mutate(profile.id);
+  };
 
   if (isLoading) return <div className="flex items-center justify-center py-10 text-muted-foreground">Loading profile...</div>;
   if (error) {
@@ -344,32 +385,57 @@ const CandidateProfileView = ({ candidateId }: { candidateId: number }) => {
       )}
 
       {/* Additional Info */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
-              <FileText className="w-5 h-5 text-primary" />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Profile Summary</CardTitle>
             </div>
-            <CardTitle className="text-lg">Profile Summary</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-2 text-sm">
-            <div className="flex justify-between py-1.5 border-b border-border/50">
-              <span className="text-muted-foreground">Total Skills</span>
-              <span className="font-medium">{profile.skills?.length || 0}</span>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-2 text-sm">
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Total Skills</span>
+                <span className="font-medium">{profile.skills?.length || 0}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Work Experience</span>
+                <span className="font-medium">{profile.workExperiences?.length || 0} positions</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Education</span>
+                <span className="font-medium">{profile.educations?.length || 0} degrees</span>
+              </div>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/50">
-              <span className="text-muted-foreground">Work Experience</span>
-              <span className="font-medium">{profile.workExperiences?.length || 0} positions</span>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMessageCandidate}
+                disabled={createChatRoomMutation.isPending}
+                className="gap-2 flex-1"
+              >
+                <MessageSquare className="w-4 h-4" />
+                {createChatRoomMutation.isPending ? "Creating..." : "Message"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  // Navigate to user profile
+                  window.location.href = `/candidate/profile/${profile.id}`;
+                }}
+                className="gap-2 flex-1"
+              >
+                <Eye className="w-4 h-4" />
+                View Full Profile
+              </Button>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/50">
-              <span className="text-muted-foreground">Education</span>
-              <span className="font-medium">{profile.educations?.length || 0} degrees</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
     </div>
   );
 };

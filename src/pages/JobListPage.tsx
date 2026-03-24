@@ -390,6 +390,48 @@ const JobDetailsModal = ({
 
             <Separator />
 
+            {/* Employer Info */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">
+                  About the Company
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Navigate to employer profile
+                    window.location.href = `/employer/profile/${job.employerId}`;
+                  }}
+                  className="gap-1"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  View Profile
+                </Button>
+              </div>
+              <div className="bg-accent/30 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  {job.logoUrl ? (
+                    <img 
+                      src={job.logoUrl} 
+                      alt={job.companyName}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-primary" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">{job.companyName}</p>
+                    <p className="text-sm text-muted-foreground">Posted {new Date(job.postedAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Full description */}
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-foreground">

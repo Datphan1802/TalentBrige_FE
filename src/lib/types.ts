@@ -123,6 +123,8 @@ export interface CandidateProfileResponse {
   educations: EducationResponse[];
   workExperiences: WorkExperienceResponse[];
   skills: SkillResponse[];
+  followersCount: number;
+  followingCount: number;
 }
 
 export interface EducationResponse {
@@ -273,4 +275,31 @@ export interface ChatMessageResponse {
   content: string;
   isRead: boolean;
   sentAt: string;
+}
+
+export interface FollowRequest {
+  followingId: number;
+}
+
+export interface FollowResponse {
+  id: number;
+  followerId: number;
+  followingId: number;
+  createdAt: string;
+}
+
+export interface UserProfileResponse {
+  id: number;
+  username: string;
+  fullName: string;
+  email: string;
+  role: string;
+  avatarUrl: string;
+  bio?: string;
+  company?: string;
+  location?: string;
+  website?: string;
+  isFollowing: boolean;
+  followersCount: number;
+  followingCount: number;
 }

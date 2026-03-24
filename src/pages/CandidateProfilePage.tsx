@@ -11,14 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Plus, User, Briefcase, GraduationCap, Sparkles } from "lucide-react";
+import { Trash2, Plus, User, Briefcase, GraduationCap, Sparkles, MessageSquare, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
 
 const CandidateProfilePage = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: profile, isLoading } = useQuery({
     queryKey: ["candidate-profile"],
     queryFn: () => api.get<ApiResponse<CandidateProfileResponse>>("/api/v1/candidates/profile").then(r => r.data.data),
+    staleTime: 0, // Always fetch fresh data to get latest followers count
   });
 
   const [editProfile, setEditProfile] = useState(false);
@@ -57,10 +60,28 @@ const CandidateProfilePage = () => {
                 </div>
                 <CardTitle className="text-lg">Personal Info</CardTitle>
               </div>
-              <Button variant="outline" size="sm" onClick={() => {
-                setForm({ fullName: profile.fullName || "", phone: profile.phone || "", address: profile.address || "", summary: profile.summary || "" });
-                setEditProfile(true);
-              }}>Edit</Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/chat")}
+                  className="gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Message
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    // Navigate to find people page
+                    navigate("/jobs");
+                  }}
+                  className="gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Find People
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -84,6 +105,30 @@ const CandidateProfilePage = () => {
                 <div className="pt-1.5"><span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold">Summary</span><p className="mt-1 text-foreground leading-relaxed">{profile.summary || "—"}</p></div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Followers Stats Card */}
+        <Card className="shadow-soft">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Followers</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{profile.followersCount || 0}</div>
+                <div className="text-sm text-muted-foreground">Followers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{profile.followingCount || 0}</div>
+                <div className="text-sm text-muted-foreground">Following</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

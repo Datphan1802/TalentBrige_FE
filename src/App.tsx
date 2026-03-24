@@ -13,6 +13,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import JobListPage from "./pages/JobListPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
 import CandidateProfilePage from "./pages/CandidateProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 import EmployerApplicationsPage from "./pages/employer/EmployerApplicationsPage";
 import EmployerProfilePage from "./pages/employer/EmployerProfilePage";
@@ -50,6 +51,8 @@ const App = () => (
               <Route path="/employer/applications" element={<ProtectedRoute allowedRoles={["EMPLOYER"]}><EmployerApplicationsPage /></ProtectedRoute>} />
               <Route path="/employer/interviews" element={<ProtectedRoute allowedRoles={["EMPLOYER"]}><EmployerInterviewsPage /></ProtectedRoute>} />
               <Route path="/employer/profile" element={<ProtectedRoute allowedRoles={["EMPLOYER"]}><EmployerProfilePage /></ProtectedRoute>} />
+              <Route path="/employer/profile/:userId" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+              <Route path="/candidate/profile/:userId" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
               <Route path="/admin/jobs" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminPendingJobsPage /></ProtectedRoute>} />
               <Route path="/admin/categories" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminCategoriesPage /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
