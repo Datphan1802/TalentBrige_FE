@@ -29,13 +29,8 @@ const MyApplicationsPage = () => {
         .get<
           ApiResponse<ApplicationResponse[]>
         >("/api/v1/applications/my-applications")
-        .then((r) => {
-          console.log("My Applications API Response:", r.data);
-          return r.data.data;
-        }),
+        .then((r) => r.data.data),
   });
-
-  console.log("MyApplicationsPage - isLoading:", isLoading, "data:", data);
 
   const withdrawMutation = useMutation({
     mutationFn: (id: number) => api.put(`/api/v1/applications/${id}/withdraw`),

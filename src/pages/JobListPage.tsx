@@ -161,8 +161,7 @@ const JobDetailsModal = ({
   const applyMutation = useMutation({
     mutationFn: (data: ApplicationRequest) =>
       api.post("/api/v1/applications", data),
-    onSuccess: (response) => {
-      console.log("Application submission response:", response);
+    onSuccess: () => {
       toast.success("Application submitted!");
       setApplyOpen(false);
       setCoverLetter("");
@@ -398,8 +397,7 @@ const JobCard = ({
   const applyMutation = useMutation({
     mutationFn: (data: ApplicationRequest) =>
       api.post("/api/v1/applications", data),
-    onSuccess: (response) => {
-      console.log("JobCard Application submission response:", response);
+    onSuccess: () => {
       toast.success("Application submitted!");
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
