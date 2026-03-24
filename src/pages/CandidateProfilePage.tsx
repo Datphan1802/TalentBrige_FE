@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trash2, Plus, User, Briefcase, GraduationCap, Sparkles } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
@@ -94,14 +95,22 @@ const CandidateProfilePage = () => {
   );
 };
 
+import { SKILL_NAMES, SKILL_LEVELS, enumToDisplay } from "@/lib/enums";
+
 const SkillsSection = ({ skills }: { skills: any[] }) => {
   const queryClient = useQueryClient();
   const [skillName, setSkillName] = useState("");
   const [level, setLevel] = useState("BEGINNER");
+  const [skillSearch, setSkillSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const filteredSkills = SKILL_NAMES.filter(
+    s => s.includes(skillSearch.toUpperCase().replace(/ /g, "_")) && !skills?.some(existing => existing.skillName === s)
+  ).slice(0, 20);
 
   const addSkill = useMutation({
     mutationFn: (data: CandidateSkillRequest) => api.post("/api/v1/candidates/skills", data),
-    onSuccess: () => { toast.success("Skill added"); setSkillName(""); queryClient.invalidateQueries({ queryKey: ["candidate-profile"] }); },
+    onSuccess: () => { toast.success("Skill added"); setSkillName(""); setSkillSearch(""); queryClient.invalidateQueries({ queryKey: ["candidate-profile"] }); },
     onError: (err: any) => toast.error(err?.response?.data?.message || "Error"),
   });
 
@@ -125,8 +134,8 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
         <div className="flex flex-wrap gap-2">
           {skills?.map(s => (
             <Badge key={s.skillName} variant="secondary" className="gap-1.5 py-1.5 px-3">
-              {s.displayName || s.skillName}
-              <span className="text-xs text-muted-foreground">· {s.level}</span>
+              {s.displayName || enumToDisplay(s.skillName)}
+              <span className="text-xs text-muted-foreground">· {enumToDisplay(s.level)}</span>
               <button onClick={() => deleteSkill.mutate(s.skillName)} className="ml-1 hover:text-destructive transition-colors">
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -135,15 +144,41 @@ const SkillsSection = ({ skills }: { skills: any[] }) => {
           {(!skills || skills.length === 0) && <p className="text-sm text-muted-foreground">No skills added yet.</p>}
         </div>
         <div className="flex gap-2 items-end">
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-2 relative">
             <Label>Skill Name</Label>
-            <Input value={skillName} onChange={e => setSkillName(e.target.value)} placeholder="e.g. React" />
+            <Input
+              value={skillName ? enumToDisplay(skillName) : skillSearch}
+              onChange={e => { setSkillSearch(e.target.value); setSkillName(""); setShowDropdown(true); }}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              placeholder="Search skills..."
+            />
+            {showDropdown && skillSearch && filteredSkills.length > 0 && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-popover shadow-md">
+                {filteredSkills.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => { setSkillName(s); setSkillSearch(""); setShowDropdown(false); }}
+                  >
+                    {enumToDisplay(s)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Level</Label>
-            <select className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" value={level} onChange={e => setLevel(e.target.value)}>
-              <option value="BEGINNER">Beginner</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option><option value="EXPERT">Expert</option>
-            </select>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {SKILL_LEVELS.map(l => (
+                  <SelectItem key={l} value={l}>{enumToDisplay(l)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={() => addSkill.mutate({ skillName, level })} disabled={!skillName} className="shadow-soft">
             <Plus className="w-4 h-4" />

@@ -35,12 +35,7 @@ import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 
-const statusStyles: Record<string, string> = {
-  APPROVED: "bg-success/10 text-success border-success/20",
-  PENDING: "bg-warning/10 text-warning border-warning/20",
-  REJECTED: "bg-destructive/10 text-destructive border-destructive/20",
-  CLOSED: "bg-muted text-muted-foreground border-border",
-};
+import { EXPERIENCE_LEVELS, JOB_TYPES, jobStatusStyles, enumToDisplay } from "@/lib/enums";
 
 const EmployerJobsPage = () => {
   const queryClient = useQueryClient();
@@ -53,7 +48,7 @@ const EmployerJobsPage = () => {
     salaryMax: 0,
     location: "",
     jobType: "FULL_TIME",
-    experienceLevel: "ENTRY",
+    experienceLevel: "INTERN",
     categoryId: 0,
     expiredAt: formatDateYMD(new Date()),
     skills: [],
@@ -225,11 +220,9 @@ const EmployerJobsPage = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="FULL_TIME">Full Time</SelectItem>
-                        <SelectItem value="PART_TIME">Part Time</SelectItem>
-                        <SelectItem value="CONTRACT">Contract</SelectItem>
-                        <SelectItem value="INTERNSHIP">Internship</SelectItem>
-                        <SelectItem value="REMOTE">Remote</SelectItem>
+                        {JOB_TYPES.map(jt => (
+                          <SelectItem key={jt} value={jt}>{enumToDisplay(jt)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -245,11 +238,9 @@ const EmployerJobsPage = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ENTRY">Entry</SelectItem>
-                        <SelectItem value="JUNIOR">Junior</SelectItem>
-                        <SelectItem value="MID">Mid</SelectItem>
-                        <SelectItem value="SENIOR">Senior</SelectItem>
-                        <SelectItem value="LEAD">Lead</SelectItem>
+                        {EXPERIENCE_LEVELS.map(level => (
+                          <SelectItem key={level} value={level}>{enumToDisplay(level)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -337,8 +328,8 @@ const EmployerJobsPage = () => {
                           <MapPin className="w-3.5 h-3.5" />
                           {job.location}
                         </span>
-                        <span>{job.jobType}</span>
-                        <span>{job.experienceLevel}</span>
+                        <span>{enumToDisplay(job.jobType)}</span>
+                        <span>{enumToDisplay(job.experienceLevel)}</span>
                         {job.expiredAt && (
                           <span>Expires: {formatDateYMD(job.expiredAt)}</span>
                         )}
@@ -347,10 +338,9 @@ const EmployerJobsPage = () => {
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="outline"
-                        className={statusStyles[job.status] || ""}
+                        className={jobStatusStyles[job.status] || ""}
                       >
-                        {" "}
-                        {job.status}
+                        {enumToDisplay(job.status)}
                       </Badge>
                       <Badge variant="secondary" className="gap-1">
                         <Users className="w-3 h-3" />

@@ -50,11 +50,7 @@ import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 
-const statusStyles: Record<string, string> = {
-  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
-  COMPLETED: "bg-success/10 text-success border-success/20",
-  CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
-};
+import { interviewStatusStyles, enumToDisplay } from "@/lib/enums";
 
 const EmployerInterviewsPage = () => {
   const queryClient = useQueryClient();
@@ -171,9 +167,9 @@ const EmployerInterviewsPage = () => {
                     </div>
                     <Badge
                       variant="outline"
-                      className={statusStyles[interview.status] || ""}
+                      className={interviewStatusStyles[interview.status] || ""}
                     >
-                      {interview.status}
+                      {enumToDisplay(interview.status)}
                     </Badge>
                   </div>
                 </CardHeader>

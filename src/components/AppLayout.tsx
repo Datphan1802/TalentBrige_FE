@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Bell, Briefcase, User, Shield, FolderOpen, Users, Search, Menu, X, Home, CalendarIcon } from "lucide-react";
+import { LogOut, Bell, Briefcase, User, Shield, FolderOpen, Users, Search, Menu, X, Home, CalendarIcon, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,20 +21,22 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   const navItems = isAuthenticated
     ? role === "CANDIDATE"
-      ? [
-          { to: "/jobs", icon: Search, label: "Browse Jobs" },
-          { to: "/my-applications", icon: FolderOpen, label: "My Applications" },
-          { to: "/candidate/profile", icon: User, label: "Profile" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
-        ]
+       ? [
+           { to: "/jobs", icon: Search, label: "Browse Jobs" },
+           { to: "/my-applications", icon: FolderOpen, label: "My Applications" },
+           { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/candidate/profile", icon: User, label: "Profile" },
+           { to: "/notifications", icon: Bell, label: "Notifications" },
+         ]
       : role === "EMPLOYER"
-      ? [
-          { to: "/employer/jobs", icon: Briefcase, label: "My Jobs" },
-          { to: "/employer/applications", icon: FolderOpen, label: "Applications" },
-          { to: "/employer/interviews", icon: CalendarIcon, label: "Interviews" },
-          { to: "/employer/profile", icon: User, label: "Profile" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
-        ]
+       ? [
+           { to: "/employer/jobs", icon: Briefcase, label: "My Jobs" },
+           { to: "/employer/applications", icon: FolderOpen, label: "Applications" },
+           { to: "/employer/interviews", icon: CalendarIcon, label: "Interviews" },
+           { to: "/chat", icon: MessageSquare, label: "Messages" },
+           { to: "/employer/profile", icon: User, label: "Profile" },
+           { to: "/notifications", icon: Bell, label: "Notifications" },
+         ]
       : role === "ADMIN"
       ? [
           { to: "/admin/jobs", icon: Shield, label: "Pending Jobs" },

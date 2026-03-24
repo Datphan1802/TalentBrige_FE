@@ -14,13 +14,7 @@ import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-warning/10 text-warning border-warning/20",
-  REVIEWING: "bg-info/10 text-info border-info/20",
-  INTERVIEW: "bg-primary/10 text-primary border-primary/20",
-  ACCEPTED: "bg-success/10 text-success border-success/20",
-  REJECTED: "bg-destructive/10 text-destructive border-destructive/20",
-};
+import { APPLICATION_STATUSES, applicationStatusStyles, enumToDisplay } from "@/lib/enums";
 
 const EmployerApplicationsPage = () => {
   const queryClient = useQueryClient();
@@ -73,7 +67,7 @@ const ApplicationCard = ({ app, queryClient }: { app: ApplicationResponse; query
             <CardTitle className="text-base font-semibold">{app.candidateName}</CardTitle>
             <p className="text-sm text-muted-foreground">{app.candidateEmail} · {app.jobTitle}</p>
           </div>
-          <Badge variant="outline" className={statusStyles[app.status] || ""}>{app.status}</Badge>
+          <Badge variant="outline" className={applicationStatusStyles[app.status] || ""}>{enumToDisplay(app.status)}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -89,11 +83,9 @@ const ApplicationCard = ({ app, queryClient }: { app: ApplicationResponse; query
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="REVIEWING">Reviewing</SelectItem>
-                <SelectItem value="INTERVIEW">Interview</SelectItem>
-                <SelectItem value="ACCEPTED">Accepted</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
+                {APPLICATION_STATUSES.map(s => (
+                  <SelectItem key={s} value={s}>{enumToDisplay(s)}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

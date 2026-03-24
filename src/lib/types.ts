@@ -249,3 +249,28 @@ export interface PageResponse<T> {
 export interface AdminJobActionRequest {
   rejectionReason: string;
 }
+
+export interface ChatRoomResponse {
+  id: number;
+  userOneId: number;
+  userOneUsername: string;
+  userTwoId: number;
+  userTwoUsername: string;
+  lastMessage: string;
+  unreadCount: number;
+}
+
+export interface SendMessageRequest {
+  roomId: number;
+  content: string;
+}
+
+export interface ChatMessageResponse {
+  id: number;
+  roomId: number;
+  senderId: number;
+  senderUsername: string;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+}
