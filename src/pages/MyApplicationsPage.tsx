@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { FileText, Clock, ArrowRight } from "lucide-react";
+import { FileText, Clock, ArrowRight, Calendar, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
 import SkeletonCard from "@/components/SkeletonCard";
@@ -40,6 +40,31 @@ const MyApplicationsPage = () => {
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || "Error"),
   });
+
+  const handleViewInterviewDetails = (applicationId: number) => {
+    console.log("Fetching interview details for application ID:", applicationId);
+    
+    // Fetch interview details for this application
+    api.get(`/api/v1/interviews/application/${applicationId}`)
+      .then(r => {
+        console.log("Interview details response:", r.data);
+        const interviews = r.data.data;
+        
+        if (interviews && interviews.length > 0) {
+          const interview = interviews[0]; // Get the first interview
+          console.log("Redirecting to interview details:", interview.id);
+          window.location.href = `/interviews/${interview.id}`;
+        } else {
+          toast.error("No interview details found for this application");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching interview details:", error);
+        console.error("Error status:", error.response?.status);
+        console.error("Error data:", error.response?.data);
+        toast.error("Failed to fetch interview details");
+      });
+  };
 
   return (
     <PageTransition>
@@ -101,17 +126,33 @@ const MyApplicationsPage = () => {
                       {app.coverLetter}
                     </p>
                   )}
-                  {app.status === "PENDING" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => withdrawMutation.mutate(app.id)}
-                      disabled={withdrawMutation.isPending}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Withdraw
-                    </Button>
-                  )}
+                  
+                  <div className="flex gap-2">
+                    {app.status === "PENDING" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => withdrawMutation.mutate(app.id)}
+                        disabled={withdrawMutation.isPending}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        Withdraw
+                      </Button>
+                    )}
+                    
+                    {app.status === "INTERVIEW" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewInterviewDetails(app.id)}
+                        className="text-primary hover:text-primary"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        View Interview Details
+                      </Button>
+                    )}
+                  </div>
+                  
                   {app.histories?.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border space-y-1.5">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">

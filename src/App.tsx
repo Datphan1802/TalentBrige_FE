@@ -21,6 +21,7 @@ import AdminPendingJobsPage from "./pages/admin/AdminPendingJobsPage";
 import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import InterviewDetailsPage from "./pages/InterviewDetailsPage";
 import ChatPage from "./pages/ChatPage";
 import FloatingAiButton from "./components/FloatingAiButton";
 import NotFound from "./pages/NotFound";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/admin/categories" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminCategoriesPage /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/interviews/:id" element={<ProtectedRoute><InterviewDetailsPage /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><ChatPage /></ProtectedRoute>} />
               <Route path="/ai-assistant" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><AiHistoryPage /></ProtectedRoute>} />
               <Route path="/ai-history" element={<ProtectedRoute allowedRoles={["CANDIDATE", "EMPLOYER"]}><AiHistoryPage /></ProtectedRoute>} />
